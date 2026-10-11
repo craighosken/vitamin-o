@@ -1,0 +1,43 @@
+name: Android build
+on:
+  push:
+    branches: [main, android-app]
+    paths: ['android-app/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: android-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: android-app/package-lock.json }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npm run sync
+      - name: Debug APK (install on your phone to test)
+        run: cd android && chmod +x gradlew && ./gradlew --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with: { name: pen-tracker-debug-apk, path: android-app/android/app/build/outputs/apk/debug/*.apk }
+      # Play Store bundle, signed with the upload key stored in repository secrets.
+      - name: Release bundle (AAB for Google Play)
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "No upload key secrets yet; skipping Play bundle."; exit 0; fi
+          echo "$KEYSTORE_B64" | base64 -d > android/app/upload.jks
+          cd android && ./gradlew --no-daemon bundleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pen-tracker-release-aab
+          path: android-app/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: ignore

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pen Tracker</string>
+    <string name="title_activity_main">Pen Tracker</string>
+    <string name="package_name">com.craighosken.pentracker</string>
+    <string name="custom_url_scheme">com.craighosken.pentracker</string>
+</resources>

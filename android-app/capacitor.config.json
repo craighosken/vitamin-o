@@ -1,0 +1,9 @@
+{
+  "appId": "com.craighosken.pentracker",
+  "appName": "Pen Tracker",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_pen", "iconColor": "#5B6CFF" }
+  }
+}
